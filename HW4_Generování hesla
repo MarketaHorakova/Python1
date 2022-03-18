@@ -1,0 +1,181 @@
+from sys import argv
+import random
+import string
+
+################# Vstuply na CLI ##################################
+#HELP
+if argv[1] == "help" or argv[1] == "Help" or argv[1] == "HELP":
+    print(f"""Input is in CLI in following format:
+
+    program.py name surname date_of_birth adress_street adress_street_number adress_town adress_postcode(without space)
+    password_length(min.8) password_numbers password_special_character password_word(if you want any)
+
+    FOR EXAMPLE: Monika Dvorackova 2000-11-16 Videnska 568 Brno 60200 13 2 4 Panda
+    """)
+    exit()
+
+#Jméno
+try:
+    name = str(argv[1])
+    surname = str(argv[2])
+except IndexError:
+    print("Wrong name input, try it again.")
+    exit()
+
+#Datum 2019-12-10
+try:
+    date_of_birth = (argv[3])
+except IndexError:
+    print("Wrong date of birth input, try it again.")
+    exit()
+
+#Ulice
+try:
+    adress_street = str(argv[4])
+except ValueError:
+    print("Wrong adress input - street, try it again.")
+    exit()
+
+#Město
+try:
+    adress_town = str(argv[6])
+except ValueError:
+    print("Wrong adress input - town, try it again.")
+    exit()
+
+#PSČ
+try:
+    if len(argv[7]) != 5:
+        print("Wrong adress input - post code, try it again.")
+        exit()
+    adress_postcode = argv[7]
+except ValueError:
+    print("Wrong adress input  - post code, try it again.")
+    exit()
+  
+##Číslo popisné
+try:
+    adress_street_number = argv[5] ## 980/5 nebo 4b
+except ValueError:
+    print("Wrong adress input  - street number, try it again.")
+
+#Délka hesla, pokud nezvolí uživatel bude mít délku 25 znaků
+try:
+    password_length = int(argv[8])
+    if password_length<8:
+        print("Minimal password length is 8.")
+        exit()
+except IndexError:
+    password_length = 25
+
+#Specifické slovo
+try:
+    password_word = str(argv[11])
+    if len(password_word) > (password_length-4):
+        print("Too long special word.")
+        exit()
+    if password_word == name or password_word == surname or password_word == adress_street_number or password_word == adress_street or password_word == adress_town:
+        print("Special word should not be one word of name or adress.")
+        exit()
+except IndexError:
+    password_word = None
+
+#Čísla v hesle
+try:
+    password_numbers = int(argv[9])
+    if password_word != None:
+        if password_numbers > (password_length-4-(len(password_word))):
+            print("Too much selected numbers.")
+            exit()
+    else: #with special word
+        if password_numbers > (password_length-3):
+            print("Required number of numbers is too much")
+            exit()
+except IndexError:
+    password_numbers = random.randint(1,(password_length-3))
+
+
+#Speciální znaky (počet)
+try:
+    password_special_character = int(argv[10])
+    if password_word != None:
+        if password_special_character > (password_length-3-(len(password_word))-password_numbers):
+            print("Too much special characters.")
+            exit()
+    else: #without special word
+        if password_special_character > (password_length-2):
+            print("Required number of special characters is too much")
+            exit()
+except IndexError:
+    password_special_character = random.randint(1,(password_length-(password_numbers+2)))
+
+
+################# Generování hesla ##################################
+def generate_password_word(length):
+    random_source = string.ascii_letters + string.digits + string.punctuation
+    password = password_word
+    # select 1 lowercase
+    password += random.choice(string.ascii_lowercase)
+    # select 1 uppercase
+    password += random.choice(string.ascii_uppercase)
+    # select 1 digit
+    for i in range (0, password_numbers):
+        password += random.choice(string.digits)
+    # select special symbols
+    for i in range (0, password_special_character):
+        password += random.choice(string.punctuation)
+
+    # generate other characters
+    for i in range(length-2-len(password_word)-password_numbers-password_special_character):
+        password += random.choice(string.ascii_letters)
+    return password
+
+def generate_any_password(length):
+    random_source = string.ascii_letters + string.digits + string.punctuation
+    # select 1 lowercase
+    password = random.choice(string.ascii_lowercase)
+    # select 1 uppercase
+    password += random.choice(string.ascii_uppercase)
+    # select digits
+    for i in range (0, password_numbers):
+        password += random.choice(string.digits)
+    # select special symbols
+    for i in range (0, password_special_character):
+        password += random.choice(string.punctuation)
+
+    # generate other characters
+    for i in range(length-2-password_numbers-password_special_character):
+        password += random.choice(string.ascii_letters)
+
+    password_list = list(password)
+
+    # shuffle all characters
+    random.SystemRandom().shuffle(password_list)
+    password = ''.join(password_list)
+    return password
+
+################# Volání fce a výpis ##################################
+if password_word == None:
+     password = generate_any_password(password_length)
+else:
+     password = generate_password_word(password_length)
+
+print(f"Generated password: {password}")
+print(len(password))
+
+#Výpis vstupů
+# print(f"""
+#      name : {name}
+#      surname: {surname}
+#      date_of_birth : {date_of_birth}
+#      adress_street : {adress_street}
+#      adress_street_number : {adress_street_number}
+#      adress_town : {adress_town}
+#      adress_postcode :{adress_postcode}
+
+#      password_length :{password_length}
+#      password_numbers : {password_numbers}
+#      password_special_character : {password_special_character }
+#      password_word : {password_word}
+    
+#      generated_password: {password}""")
