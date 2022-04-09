@@ -1,0 +1,91 @@
+import requests
+import json
+
+#Stažení dat a uložení do souboru JSON
+url = "https://opendata.arcgis.com/datasets/fa9235bbface40f6965be985f0f073ac_0.geojson"
+
+data = requests.get(url)
+cyklo_data = data.json()
+
+with open('Nehody Cyklistů v Brně.json', mode = "w", encoding='utf-8') as file:
+  json.dump(cyklo_data, file, indent=2)
+
+#Počty nehod podle měsíců -> pak fce dle daného měsíce
+with open('Nehody Cyklistů v Brně.json', mode = "r", encoding='utf-8') as file:
+   cyklisti = json.load(file)
+
+mesice_nehod = []
+celkovy_pocet_nehod = 0
+tezce_raneny, smrt = 0, 0
+vek = []
+skoda = 0
+
+for key, value in cyklisti.items():
+    if key == "features":
+        for nehody in value:
+            celkovy_pocet_nehod += 1
+            for klic, nehoda in nehody.items():
+                if klic == "properties":
+                    for klic2, data in nehoda.items():
+                        if klic2 == "mesic":
+                            mesice_nehod.append(data)
+                        elif klic2 == "tezce_zran_os" and data == 1:
+                            tezce_raneny += 1
+                        elif klic2 == "usmrceno_os" and data == 1:
+                            smrt += 1
+                        elif klic2 == "vek_skupina":
+                            vek.append(data)
+                        elif klic2 == "hmotna_skoda":
+                            if data > skoda:
+                                skoda = data
+
+
+
+
+leden, unor, brezen, duben, kveten, cerven = 0,0,0,0,0,0
+cervenec, srpen, zari, rijen, listopad, prosinec = 0,0,0,0,0,0
+for cislo in mesice_nehod:
+    if cislo == 1:
+        leden += 1
+    elif cislo == 2:
+        unor += 1
+    elif cislo == 3:
+        brezen += 1
+    elif cislo == 4:
+        duben += 1
+    elif cislo == 5:
+        kveten += 1
+    elif cislo == 6:
+        cerven += 1
+    elif cislo == 7:
+        cervenec += 1
+    elif cislo == 8:
+        srpen += 1
+    elif cislo == 9:
+        zari += 1
+    elif cislo == 10:
+        rijen += 1
+    elif cislo == 11:
+        listopad += 1
+    else:
+        prosinec += 1
+    
+print(f"""Leden: {leden}\nÚnor: {unor}\nBřezen: {brezen}\nDuben: {duben}\nKvěten: {kveten}\nČerven: {cerven}
+Červenec: {cervenec}\nSrpen: {srpen}\nZáří: {zari}\nŘíjen: {rijen}\nListopad: {listopad}\nProsinec: {prosinec}""")
+
+print(f"Celkový počet nehod: {celkovy_pocet_nehod}")
+
+#Kolik nehod bylo fatálních - končilo úrtím nebo těžkým zraněním
+print(f"Těžce raněných: {tezce_raneny} a usmrceno: {smrt} ")
+
+#Kolik nehod bylo s dětmi?
+deti = 0
+for cislo in vek:
+    if cislo == "0-6" or cislo == "7-11" or cislo =="12-15":
+        deti += 1
+
+    
+print(f"{deti} dětí do 15 let bylo součástí dopravních nehod v Brně")
+
+#největší způsobená hmotná škoda
+print(f"Největší způsobená hmotná škoda činila {skoda} korun.")
