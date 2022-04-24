@@ -1,0 +1,78 @@
+from unidecode import unidecode
+import json
+
+# Prváci
+
+# Na Fakultu hybridních přírodních umění nastupují nově přijatí studenti. Tabulku těchto studentů s jejich 
+# rodnými čísly najdete v souboru studenti.txt. Tabulka je evidentně vykopírovaná z Excelu, neboť hodnoty 
+# jsou zde odděleny tabulátory. Na každém řádku je jméno a příjmení studenta a jeho rodné číslo. Vytvořte 
+# Python program a proveďte v něm následující úkony.
+
+# 1. Načtěte data ze souboru do vašeho programu jako tabulku v podobě seznamu seznamů. Každý vnořený seznam 
+# bude představovat jeden řádek tabulky
+
+with open ("studenti.txt") as txt_file:
+    lines = txt_file.readlines()
+
+lines = [line.rstrip() for line in lines]
+lines = [line.split("\t") for line in lines]
+prvni_radek = lines[0]
+lines.remove(lines[0])
+prvni_radek = [line.split(" ") for line in prvni_radek]
+prvni_radek2 = [prvni_radek[0][0], prvni_radek[0][1], "rodné číslo", "věk", "pohlaví", "mail"]
+
+# 2. Přidejte do tabulky sloupec, který bude udávat věk studenta. Věk studenta zjistíte podle roku narození, 
+# což jsou první dvě cifry rodného čísla.
+vek = []
+
+for line in lines:
+    rok = int(line[2][0:2])
+    mesic = (int(line[2][2:4]))%50
+    den = int(line[2][4:6])
+    vek = (100 - rok + 22)
+    line.append(vek)
+
+# 3. Přidejte do tabulky sloupec, který bude udávat zda je student muž či žena. Pohlaví poznáte podle měsíce 
+# narození (druhé dvě cifry rodného čísla). Pokud je člověk ženského pohlaví, přičítá se k první cifře měsíce
+# narození číslo 5.
+for line in lines:
+    mesic = int(line[2][2:4])
+    if mesic>20:
+        pohlavi = "žena"
+    else:
+        pohlavi = "muž"
+    line.append(pohlavi)
+
+# 4. Přidejte do tabulky sloupec, který bude udávat univerzitní email studenta. Univerzitní mail vznikne tak, 
+# že se vezme prvních pět písmenek příjmení a první tři písmenka křestního jména. Za takto vzniklý řetězec se 
+# připojí doména @hybrid.edu.
+# Příklad: Student se jménem Květoslav Štístko bude mít email stistkve@hybrid.edu. Všimněte si, že pro tuto 
+# konstrukci potřebujeme jméno zbavit diakritiky. To lze v Pythonu provést pomocí modulu unidecode. 
+for line in lines:
+    mail_prijmeni = unidecode(line[0][0:5])
+    mail_jmeno = unidecode(line[1][0:3])
+    mail = mail_prijmeni + mail_jmeno + "@hybrid.edu"
+    line.append(mail)
+
+
+# 5. Uložte výslednou tabulku ve formátu JSON do souboru s názvem studenti.json. K tomu bude potřeba seznam 
+# seznamů převést na seznam slovníků. Každý řádek tabulky tedy bude reprezentován slovníkem, kde klíče 
+# jsou názvy sloupečků.
+# lines.insert(0,prvni_radek2)
+slovnik = {}
+for line in lines:
+    slovnik = {
+    prvni_radek2[0]:line[0],
+    prvni_radek2[1]:line[1],
+    prvni_radek2[2]:line[2],
+    prvni_radek2[3]:line[3],
+    prvni_radek2[4]:line[4],
+    prvni_radek2[5]:line[5]
+    }
+    line.clear()
+    line.extend(slovnik.items())
+    line = dict(line)
+
+print(lines)
+with open('Studenti.json', mode = "w", encoding='utf-8') as file:
+  json.dump(lines, file, indent=4)
